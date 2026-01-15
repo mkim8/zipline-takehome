@@ -17,15 +17,26 @@ class Main
       lines = read_file_lines(file_path, match_type)     
   end
 
-  def self.add_to_hash(row, header_indices, my_hash, match_type)
+  def self.get_phone_number_from_string(phone_string)
+    return nil if phone_string.nil?
+    phone_string.gsub(/[^0-9]/, '')
+  end
+
+  def self.add_to_hash(row, header_indices, my_hash, is_email, row_index)
     header_indices.each do |i|
       return if row[i].nil?
       key = row[i].strip.downcase
+
+      if (is_email == false) 
+        key = get_phone_number_from_string(key)
+      end
+
       return if key.empty?
+
       if my_hash[key].nil?
-        my_hash[key] = [ row ]
+        my_hash[key] = [ row_index ]
       else
-        my_hash[key] << row
+        my_hash[key] << row_index
       end
     end
   end
@@ -36,20 +47,21 @@ class Main
     lines = []
     email_header_indices = []
     phone_number_header_indices = []
-    CSV.foreach(file_path) do |row|
+    CSV.foreach(file_path).with_index do |row, i|
       if email_header_indices.empty? && phone_number_header_indices.empty?
-        email_header_indices = row.each_index.select { |i| row[i].downcase.include?("email") }
-        phone_number_header_indices = row.each_index.select { |i| row[i].downcase.include?("phone") }
+        email_header_indices = row.each_index.select { |j| row[j].downcase.include?("email") }
+        phone_number_header_indices = row.each_index.select { |j| row[j].downcase.include?("phone") }
         puts "Email header indices: #{email_header_indices}"
         puts "Phone number header indices: #{phone_number_header_indices}"
       else
         case match_type
         when MATCH_TYPE[:email_address]
-          puts "Adding to email hash"
-          add_to_hash(row, email_header_indices, my_email_hash, match_type)
+          add_to_hash(row, email_header_indices, my_email_hash, true, i)
         when MATCH_TYPE[:phone_number]
-          add_to_hash(row, phone_number_header_indices, my_phone_hash, match_type)
-#        when match_type == MATCH_TYPE[:email_address_and_phone_number]
+          add_to_hash(row, phone_number_header_indices, my_phone_hash, false, i)
+        when MATCH_TYPE[:email_address_and_phone_number]
+          add_to_hash(row, email_header_indices, my_email_hash, true, i)
+          add_to_hash(row, phone_number_header_indices, my_phone_hash, false, i)
         end
       end
       lines << row
