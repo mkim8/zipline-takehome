@@ -1,4 +1,5 @@
 require "csv"
+require "set"
 
 class Main
 
@@ -10,11 +11,48 @@ class Main
   MATCH_TYPE.values.each(&:freeze) # Freeze the values as well
     
   def self.run
-      puts "=== Matching Program ==="
-      file_path = prompt_for_file_path()
-      match_type = prompt_for_match_type()
+    # INPUT
+    puts "=== Matching Program ==="
+    file_path = prompt_for_file_path()
+    match_type = prompt_for_match_type()
 
-      lines = read_file_lines(file_path, match_type)     
+    # PROCESSING
+    my_email_hash, my_phone_hash = read_file_lines(file_path, match_type)     
+    row_index_to_unique_id_hash = determine_unique_ids(my_email_hash, my_phone_hash, match_type) 
+    
+    # OUTPUT
+  end
+
+  def self.determine_unique_ids(email_hash, phone_hash, match_type)
+    row_index_to_matching_group = {}
+    case match_type
+    when MATCH_TYPE[:email_address]
+      row_index_to_matching_group = determine_matching_groups(email_hash)
+    when MATCH_TYPE[:phone_number]
+      row_index_to_matching_group = determine_matching_groups(phone_hash)
+    when MATCH_TYPE[:email_address_and_phone_number]
+      row_index_to_matching_group_email = determine_matching_groups(email_hash)
+      row_index_to_matching_group_phone = determine_matching_groups(phone_hash)
+      
+    end
+    row_index_to_unique_id_mapping
+  end
+
+  def self.determine_matching_groups(my_hash)
+    row_index_to_matching_group_hash = {}
+    my_hash.each do |key, row_indices|
+      if row_indices.length > 1
+        current_set = Set.new(row_indices)
+        row_indices.each do |row_index|
+          if row_index_to_matching_group_hash[row_index].nil?
+            row_index_to_matching_group_hash[row_index] = current_set
+          else
+            row_index_to_matching_group_hash[row_index].merge(current_set)
+          end
+        end
+      end
+    end
+    row_index_to_matching_group_hash
   end
 
   def self.get_phone_number_from_string(phone_string)
@@ -64,11 +102,11 @@ class Main
           add_to_hash(row, phone_number_header_indices, my_phone_hash, false, i)
         end
       end
-      lines << row
+      # lines << row
     end
     puts "Email Hash: #{my_email_hash}"
     puts "Phone Hash: #{my_phone_hash}"
-    lines
+    [ my_email_hash, my_phone_hash ]
   end
 
   def self.prompt_for_file_path
