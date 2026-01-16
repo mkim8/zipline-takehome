@@ -1,8 +1,8 @@
-require_relative "test_helper"
+require_relative 'test_helper'
 
 class MainTest < Minitest::Test
   def write_temp_csv(contents)
-    f = Tempfile.new(["input", ".csv"])
+    f = Tempfile.new(['input', '.csv'])
     f.write(contents)
     f.flush
     f
@@ -34,7 +34,7 @@ class MainTest < Minitest::Test
     out = read_csv(output_path)
 
     # test "Unique ID" has been added to the header
-    assert_equal ["Unique ID", "Email", "Phone", "Name"], out[0]
+    assert_equal ['Unique ID', 'Email', 'Phone', 'Name'], out[0]
 
     id1 = out[1][0]
     id2 = out[2][0]
