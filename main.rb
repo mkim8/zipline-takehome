@@ -8,7 +8,6 @@ class Main
     phone_number: 2,
     email_address_and_phone_number: 3
   }.freeze
-  MATCH_TYPE.values.each(&:freeze) # Freeze the values as well
     
   def self.run
     # INPUT
@@ -17,38 +16,37 @@ class Main
     match_type = prompt_for_match_type()
 
     # PROCESSING
-    my_hash, lines = read_file_lines(file_path, match_type)     
-    row_index_to_unique_id_hash, last_index = determine_unique_ids(my_hash, match_type) 
+    my_hash = read_file_lines(file_path, match_type)     
+    row_index_to_unique_id_hash, last_index = determine_unique_ids(my_hash) 
     
     # OUTPUT
-    generate_new_csv(file_path, lines, row_index_to_unique_id_hash, last_index)
+    generate_new_csv(file_path, row_index_to_unique_id_hash, last_index)
   end
 
-  def self.generate_new_csv(file_path, lines, row_index_to_unique_id_hash, last_index)
+  def self.generate_new_csv(file_path, row_index_to_unique_id_hash, last_index)
     output_file_path = file_path.sub(/(\.\w+)?$/, '_copy\1')
     CSV.open(output_file_path, 'w') do |csv|
-      header = ['Unique ID'] + lines[0]
-      csv << header
-      lines.each_with_index do |row, i|
+      CSV.foreach(file_path).with_index do |row, i|
         if i == 0
-          next
+          header = ['Unique ID'] + row
+          csv << header
+        else
+          unique_id = row_index_to_unique_id_hash[i]
+          if unique_id.nil?
+              unique_id = last_index
+              last_index += 1
+          end
+          csv << [unique_id] + row 
         end
-        unique_id = row_index_to_unique_id_hash[i]
-        if unique_id.nil?
-            unique_id = last_index
-            last_index += 1
-        end
-        csv << [unique_id] + row 
       end
     end
-    puts "Output written to #{output_file_path}"
   end
 
-  def self.determine_unique_ids(my_hash, match_type)
+  def self.determine_unique_ids(my_hash)
     row_index_to_matching_group = {}
     row_index_to_unique_id = {}
     row_index_to_matching_group = determine_matching_groups(my_hash)
-    puts " Row index to matching group: #{row_index_to_matching_group}"
+#    puts " Row index to matching group: #{row_index_to_matching_group}"
 
     unique_id = 1
     increment_unique_id = false
@@ -65,7 +63,7 @@ class Main
       end
     end
 
-    puts " Row index to unique ID: #{row_index_to_unique_id}"
+#    puts " Row index to unique ID: #{row_index_to_unique_id}"
     [ row_index_to_unique_id, unique_id]
   end
 
@@ -94,14 +92,14 @@ class Main
 
   def self.add_to_hash(row, header_indices, my_hash, is_email, row_index)
     header_indices.each do |i|
-      return if row[i].nil?
+      next if row[i].nil?
       key = row[i].strip.downcase
 
       if (is_email == false) 
         key = get_phone_number_from_string(key)
       end
 
-      return if key.empty?
+      next if key.empty?
 
       if my_hash[key].nil?
         my_hash[key] = [ row_index ]
@@ -113,15 +111,14 @@ class Main
 
   def self.read_file_lines(file_path, match_type)
     my_hash = {}
-    lines = []
     email_header_indices = []
     phone_number_header_indices = []
     CSV.foreach(file_path).with_index do |row, i|
       if email_header_indices.empty? && phone_number_header_indices.empty?
         email_header_indices = row.each_index.select { |j| row[j].downcase.include?("email") }
         phone_number_header_indices = row.each_index.select { |j| row[j].downcase.include?("phone") }
-        puts "Email header indices: #{email_header_indices}"
-        puts "Phone number header indices: #{phone_number_header_indices}"
+#        puts "Email header indices: #{email_header_indices}"
+#        puts "Phone number header indices: #{phone_number_header_indices}"
       else
         case match_type
         when MATCH_TYPE[:email_address]
@@ -133,10 +130,9 @@ class Main
           add_to_hash(row, phone_number_header_indices, my_hash, false, i)
         end
       end
-      lines << row
     end
-    puts " Hash: #{my_hash}"
-    [ my_hash, lines ]
+#    puts " Hash: #{my_hash}"
+    my_hash
   end
 
   def self.prompt_for_file_path
