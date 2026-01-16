@@ -1,3 +1,8 @@
+# This class implements the Union-Find (Disjoint Set Union) algorithm/data structure.
+#
+# For more information, see: 
+# https://www.geeksforgeeks.org/dsa/introduction-to-disjoint-set-data-structure-or-union-find-algorithm/
+
 class UnionFind
   def initialize
     @parent = {}

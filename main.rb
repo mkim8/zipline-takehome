@@ -23,6 +23,8 @@ class Main
     generate_new_csv(file_path, union_find)
   end
 
+  # Generates a new CSV file line by line, with an additional "Unique ID" column based on the Union-Find structure.
+  # Uses Union-Find to determine which rows are connected and assigns the same Unique ID to connected rows.
   def self.generate_new_csv(file_path, union_find)
     output_file_path = file_path.sub(/(\.\w+)?$/, '_copy\1')
     CSV.open(output_file_path, 'w') do |csv|
@@ -54,6 +56,8 @@ class Main
     phone_string.gsub(/[^0-9]/, '')
   end
 
+  # For each key (email or phone number) in the specified row, determine if it has been seen before.
+  # If it has, union the current row index with the first row index where the key was seen. 
   def self.determine_first_seen_row_index_for_keys_in_row( keys_header_indices, row, email_or_phone_number_type, row_index, union_find, first_row_seen_for_key)
     keys_header_indices.each do |i|
       next if row[i].nil?
@@ -74,6 +78,7 @@ class Main
     union_find
   end
 
+  # Reads the CSV file line by line and builds the Union-Find structure based on the matching type.
   def self.read_file_lines(file_path, match_type)
     email_header_indices = []
     phone_number_header_indices = []
@@ -93,7 +98,6 @@ class Main
           union_find = determine_first_seen_row_index_for_keys_in_row( email_header_indices, row, MATCH_TYPE[:email_address], i,  union_find, first_row_seen_for_key)
           union_find = determine_first_seen_row_index_for_keys_in_row( phone_number_header_indices, row, MATCH_TYPE[:phone_number], i,  union_find, first_row_seen_for_key)
         end
-          
       end
     end
     union_find
