@@ -17,25 +17,30 @@ class Main
     match_type = prompt_for_match_type()
 
     # PROCESSING
-    my_email_hash, my_phone_hash = read_file_lines(file_path, match_type)     
-    row_index_to_unique_id_hash = determine_unique_ids(my_email_hash, my_phone_hash, match_type) 
+    my_hash = read_file_lines(file_path, match_type)     
+    row_index_to_unique_id_hash = determine_unique_ids(my_hash, match_type) 
     
     # OUTPUT
   end
 
-  def self.determine_unique_ids(email_hash, phone_hash, match_type)
+  def self.determine_unique_ids(my_hash, match_type)
     row_index_to_matching_group = {}
-    case match_type
-    when MATCH_TYPE[:email_address]
-      row_index_to_matching_group = determine_matching_groups(email_hash)
-    when MATCH_TYPE[:phone_number]
-      row_index_to_matching_group = determine_matching_groups(phone_hash)
-    when MATCH_TYPE[:email_address_and_phone_number]
-      row_index_to_matching_group_email = determine_matching_groups(email_hash)
-      row_index_to_matching_group_phone = determine_matching_groups(phone_hash)
-      
+    row_index_to_unique_id = {}
+    row_index_to_matching_group = determine_matching_groups(my_hash)
+    puts " Row index to matching group: #{row_index_to_matching_group}"
+
+    unique_id = 1
+    row_index_to_matching_group.each do |row_index, matching_group|
+      matching_group.each do |other_row_index|
+        if row_index_to_unique_id[other_row_index].nil?
+          row_index_to_unique_id[other_row_index] = unique_id
+        end
+      end
+      unique_id += 1
     end
-    row_index_to_unique_id_mapping
+
+    puts " Row index to unique ID: #{row_index_to_unique_id}"
+    row_index_to_unique_id
   end
 
   def self.determine_matching_groups(my_hash)
@@ -47,7 +52,8 @@ class Main
           if row_index_to_matching_group_hash[row_index].nil?
             row_index_to_matching_group_hash[row_index] = current_set
           else
-            row_index_to_matching_group_hash[row_index].merge(current_set)
+                
+            current_set = row_index_to_matching_group_hash[row_index].merge(current_set)
           end
         end
       end
@@ -80,8 +86,7 @@ class Main
   end
 
   def self.read_file_lines(file_path, match_type)
-    my_email_hash = {}
-    my_phone_hash = {}
+    my_hash = {}
     lines = []
     email_header_indices = []
     phone_number_header_indices = []
@@ -94,19 +99,18 @@ class Main
       else
         case match_type
         when MATCH_TYPE[:email_address]
-          add_to_hash(row, email_header_indices, my_email_hash, true, i)
+          add_to_hash(row, email_header_indices, my_hash, true, i)
         when MATCH_TYPE[:phone_number]
-          add_to_hash(row, phone_number_header_indices, my_phone_hash, false, i)
+          add_to_hash(row, phone_number_header_indices, my_hash, false, i)
         when MATCH_TYPE[:email_address_and_phone_number]
-          add_to_hash(row, email_header_indices, my_email_hash, true, i)
-          add_to_hash(row, phone_number_header_indices, my_phone_hash, false, i)
+          add_to_hash(row, email_header_indices, my_hash, true, i)
+          add_to_hash(row, phone_number_header_indices, my_hash, false, i)
         end
       end
       # lines << row
     end
-    puts "Email Hash: #{my_email_hash}"
-    puts "Phone Hash: #{my_phone_hash}"
-    [ my_email_hash, my_phone_hash ]
+    puts " Hash: #{my_hash}"
+    my_hash
   end
 
   def self.prompt_for_file_path
