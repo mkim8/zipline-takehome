@@ -46,6 +46,7 @@ class Main
     puts
     puts "Output written to: #{output_file_path}"
     puts
+    output_file_path
   end
 
   def self.get_phone_number_from_string(phone_string)
