@@ -1,5 +1,6 @@
 require "csv"
 require "set"
+require_relative "union_find"
 
 class Main
 
@@ -46,7 +47,6 @@ class Main
     row_index_to_matching_group = {}
     row_index_to_unique_id = {}
     row_index_to_matching_group = determine_matching_groups(my_hash)
-#    puts " Row index to matching group: #{row_index_to_matching_group}"
 
     unique_id = 1
     increment_unique_id = false
@@ -63,7 +63,6 @@ class Main
       end
     end
 
-#    puts " Row index to unique ID: #{row_index_to_unique_id}"
     [ row_index_to_unique_id, unique_id]
   end
 
@@ -117,8 +116,6 @@ class Main
       if email_header_indices.empty? && phone_number_header_indices.empty?
         email_header_indices = row.each_index.select { |j| row[j].downcase.include?("email") }
         phone_number_header_indices = row.each_index.select { |j| row[j].downcase.include?("phone") }
-#        puts "Email header indices: #{email_header_indices}"
-#        puts "Phone number header indices: #{phone_number_header_indices}"
       else
         case match_type
         when MATCH_TYPE[:email_address]
@@ -131,7 +128,6 @@ class Main
         end
       end
     end
-#    puts " Hash: #{my_hash}"
     my_hash
   end
 
