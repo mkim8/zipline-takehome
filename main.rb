@@ -17,10 +17,31 @@ class Main
     match_type = prompt_for_match_type()
 
     # PROCESSING
-    my_hash = read_file_lines(file_path, match_type)     
-    row_index_to_unique_id_hash = determine_unique_ids(my_hash, match_type) 
+    my_hash, lines = read_file_lines(file_path, match_type)     
+    row_index_to_unique_id_hash, last_index = determine_unique_ids(my_hash, match_type) 
     
     # OUTPUT
+    generate_new_csv(file_path, lines, row_index_to_unique_id_hash, last_index)
+  end
+
+  def self.generate_new_csv(file_path, lines, row_index_to_unique_id_hash, last_index)
+    output_file_path = file_path.sub(/(\.\w+)?$/, '_copy\1')
+    CSV.open(output_file_path, 'w') do |csv|
+      header = ['Unique ID'] + lines[0]
+      csv << header
+      lines.each_with_index do |row, i|
+        if i == 0
+          next
+        end
+        unique_id = row_index_to_unique_id_hash[i]
+        if unique_id.nil?
+            unique_id = last_index
+            last_index += 1
+        end
+        csv << [unique_id] + row 
+      end
+    end
+    puts "Output written to #{output_file_path}"
   end
 
   def self.determine_unique_ids(my_hash, match_type)
@@ -30,17 +51,22 @@ class Main
     puts " Row index to matching group: #{row_index_to_matching_group}"
 
     unique_id = 1
+    increment_unique_id = false
     row_index_to_matching_group.each do |row_index, matching_group|
       matching_group.each do |other_row_index|
         if row_index_to_unique_id[other_row_index].nil?
           row_index_to_unique_id[other_row_index] = unique_id
+          increment_unique_id = true
         end
       end
-      unique_id += 1
+      if increment_unique_id == true
+        unique_id += 1
+        increment_unique_id = false
+      end
     end
 
     puts " Row index to unique ID: #{row_index_to_unique_id}"
-    row_index_to_unique_id
+    [ row_index_to_unique_id, unique_id]
   end
 
   def self.determine_matching_groups(my_hash)
@@ -107,10 +133,10 @@ class Main
           add_to_hash(row, phone_number_header_indices, my_hash, false, i)
         end
       end
-      # lines << row
+      lines << row
     end
     puts " Hash: #{my_hash}"
-    my_hash
+    [ my_hash, lines ]
   end
 
   def self.prompt_for_file_path
