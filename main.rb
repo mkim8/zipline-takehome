@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'csv'
 require_relative 'union_find'
 
@@ -30,7 +32,7 @@ class Main
       root_index_to_unique_id = {}
       next_unique_id = 1
       CSV.foreach(file_path).with_index do |row, i|
-        if i == 0
+        if i.zero?
           header = ['Unique ID'] + row
           csv << header
         else
@@ -85,7 +87,7 @@ class Main
     union_find = UnionFind.new
     first_row_seen_for_key = {}
     CSV.foreach(file_path).with_index do |row, i|
-      if i == 0
+      if i.zero?
         email_header_indices = row.each_index.select { |j| row[j]&.downcase&.include?('email') }
         phone_number_header_indices = row.each_index.select { |j| row[j]&.downcase&.include?('phone') }
       else
@@ -138,4 +140,4 @@ class Main
   end
 end
 
-Main.run if __FILE__ == $0
+Main.run if __FILE__ == $PROGRAM_NAME

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This class implements the Union-Find (Disjoint Set Union) algorithm/data structure.
 #
 # For more information, see:
