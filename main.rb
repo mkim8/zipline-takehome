@@ -12,6 +12,7 @@ class Main
   def self.run
     # INPUT
     puts "=== Matching Program ==="
+    puts
     file_path = prompt_for_file_path()
     match_type = prompt_for_match_type()
 
@@ -32,7 +33,7 @@ class Main
           header = ['Unique ID'] + row
           csv << header
         else
-          root_index = union_find.find(i)
+          root_index = union_find.find_root(i)
           if root_index_to_unique_id[root_index].nil?
             root_index_to_unique_id[root_index] = next_unique_id
             next_unique_id += 1
@@ -42,6 +43,9 @@ class Main
         end
       end
     end
+    puts
+    puts "Output written to: #{output_file_path}"
+    puts
   end
 
   def self.get_phone_number_from_string(phone_string)
@@ -52,7 +56,7 @@ class Main
   def self.determine_first_seen_row_index_for_keys_in_row( keys_header_indices, row, email_or_phone_number_type, row_index, union_find, first_row_seen_for_key)
     keys_header_indices.each do |i|
       next if row[i].nil?
-      key = row[i].strip.downcase
+      key = row[i].to_s.strip.downcase
 
       if (email_or_phone_number_type == MATCH_TYPE[:phone_number]) 
         key = get_phone_number_from_string(key)
@@ -75,9 +79,9 @@ class Main
     union_find = UnionFind.new
     first_row_seen_for_key = {}
     CSV.foreach(file_path).with_index do |row, i|
-      if email_header_indices.empty? && phone_number_header_indices.empty?
-        email_header_indices = row.each_index.select { |j| row[j].downcase.include?("email") }
-        phone_number_header_indices = row.each_index.select { |j| row[j].downcase.include?("phone") }
+      if i == 0
+        email_header_indices = row.each_index.select { |j| row[j]&.downcase&.include?("email") }
+        phone_number_header_indices = row.each_index.select { |j| row[j]&.downcase&.include?("phone") }
       else
         case match_type
         when MATCH_TYPE[:email_address]
@@ -112,6 +116,7 @@ class Main
     puts "  1) Email Address"
     puts "  2) Phone Number"
     puts "  3) Email OR Phone Number"
+    puts
 
     loop do
       print "Enter choice (1-3): "

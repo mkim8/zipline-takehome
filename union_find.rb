@@ -3,16 +3,16 @@ class UnionFind
     @parent = {}
   end
 
-  def find(x)
+  def find_root(x)
     @parent[x] ||= x          # if x is new, it is its own parent
     return x if @parent[x] == x
 
-    @parent[x] = find(@parent[x])  # path compression
+    @parent[x] = find_root(@parent[x])  # path compression
   end
 
   def union(a, b)
-    root_a = find(a)
-    root_b = find(b)
+    root_a = find_root(a)
+    root_b = find_root(b)
 
     return if root_a == root_b     # already connected
 
