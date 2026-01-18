@@ -64,8 +64,8 @@ ruby -Itest test/run.rb
 For the purpose of this take home, I did not think it was necessary to add much error handling, but in the real world, errors are everywhere. Here are some of the areas I would add error handling:
 ##### Reading 
 - When there is no Email or Phone Number columns
-- When email or email-phone matching type is selected by there is no email column
-- When where phone number or email-phone matching type is selected by there is no phone number column
+- When email or email-phone matching type is selected but there is no email column
+- When where phone number or email-phone matching type is selected but there is no phone number column
 ##### Writing
 - When the program cannot write to the disk
 - When the disk runs out of memory during write
